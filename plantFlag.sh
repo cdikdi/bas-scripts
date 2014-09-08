@@ -45,7 +45,8 @@ sleep 1s
 
 if [ -w "$file" ];
    then 
-	chmod 444 "$file" && echo "The Flag file is now secured!"
+	#added chattr +i for imutability
+	chmod 444 "$file" && chattr +i "$file" && echo "The Flag file is now secured!"
 
 elif [ ! -w "$file" ];
    then 
