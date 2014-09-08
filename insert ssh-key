@@ -1,0 +1,7 @@
+#!/bin/sh
+cd /home/sysadmin/
+mkdir .ssh
+cd .ssh/
+touch authorized_keys
+echo "insert-key-here" > authorized_keys
+echo "all done"
