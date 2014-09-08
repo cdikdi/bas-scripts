@@ -1,0 +1,81 @@
+# source: http://www.nigeldunn.com/2011/03/23/joomla-lockdown-script-for-apache/
+
+#!/bin/bash
+
+# Set the Home directory
+dir=/home
+
+# Start iterating thru the home directory
+for i in $( ls -1 $dir ); do
+
+# Test to see if the public_html exists and there is a folder called components before iterating into it
+if [ -d "/home/$i/public_html/components" ]; then
+
+# Rewrite all ownership to be the user account permissions
+chown -R $i:$i /home/$i/public_html
+
+# Descend into the public_html folder and begin fixing permissions
+cd /home/$i/public_html
+
+echo "--- Setting Generic Permissions ---"
+
+# Indescriminately rewrite all permissions
+find . -type d -exec chmod 755 {} \;
+find . -type f -exec chmod 644 {} \;
+
+echo "--- Generic Permissions Completed ---"
+
+echo "--- Setting Images Permissions ---"
+# Reset permissions for images to be writeable
+chmod 1777 /home/$i/public_html/images
+cd /home/$i/public_html/images
+find . -type d -exec chmod 777 {} \;
+
+echo "Creating .htaccess file..."
+# Add an .htaccess file to the images folder so PHP files cant be executed
+echo '
+Order Allow,Deny
+Deny from all
+' > /home/$i/public_html/images/.htaccess
+# Change the user on the .htaccess file so that it cant be modified by apache due to the sticky bit
+chown root:root /home/$i/public_html/images/.htaccess
+echo "File created."
+echo "--- Image Permissions Completed ---"
+
+# Check for DocMan, if it exists give it write permissions
+if [ -d "/home/$i/public_html/dmdocuments" ]; then
+echo "--- Setting DocMan Permissions ---"
+chmod 1777 /home/$i/public_html/dmdocuments
+
+echo "Creating .htaccess file..."
+# Add an .htaccess file to the DocMan folder so PHP files cant be executed
+echo '
+Order Allow,Deny
+Deny from all
+' > /home/$i/public_html/dmdocuments/.htaccess
+# Change the user on the .htaccess file so that it cant be modified by apache due to the sticky bit
+chown root:root /home/$i/public_html/dmdocuments/.htaccess
+echo "File created."
+echo "--- DocMan Permissions Completed ---"
+fi
+
+# Check for Mosets Tree, if it exists give the images folder write permissions
+if [ -d "/home/$i/public_html/components/com_mtree" ]; then
+echo "--- Setting Mosets Tree Permissions ---"
+cd /home/$i/public_html/components/com_mtree
+chmod 1777 /home/$i/public_html/components/com_mtree/img
+cd /home/$i/public_html/components/com_mtree/img
+find . -type d -exec chmod 777 {} \;
+
+echo "Creating .htaccess file..."
+# Add an .htaccess file to the Mosets Tree images folder so PHP files cant be executed
+echo '
+Order Allow,Deny
+Deny from all
+' > /home/$i/public_html/components/com_mtree/img/.htaccess
+chown root:root /home/$i/public_html/components/com_mtree/img/.htaccess
+echo "File created."
+echo "--- Mosets Tree Permissions Completed ---"
+fi
+fi
+done
