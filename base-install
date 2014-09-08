@@ -1,0 +1,77 @@
+dgXncPX35p8W 
+Network Setup
+
+    eth0 198.61.202.102
+    eth1 10.180.38.66
+    eth2 192.168.3.2
+
+---------------
+#!/bin/bash
+#setup SSH with my personal key
+#assuming that this script is being run in the /root
+mkdir ~/.ssh
+touch .ssh/authorized_keys
+sed -i -e 's/#AuthorizedKeysFile/AuthorizedKeysFile/g' /etc/ssh/sshd_config
+echo "inser-key-here" > ~/.ssh/authorized_keys
+#Setup the repositories and download the packages
+wget -q -O- "http://debian.saltstack.com/debian-salt-team-joehealy.gpg.key" | apt-key add -
+echo "#SaltStack repository
+deb http://debian.saltstack.com/debian wheezy-saltstack main
+deb-src http://debian.saltstack.com/debian wheezy-saltstack main" >> /etc/apt/sources.list
+apt-get update
+apt-get -y dist-upgrade
+apt-get -y install locate ufw denyhosts logwatch dnsutils htop mtr sysstat dnsutils mosh ssmtp salt-minion salt-master salt-syndic git-core build-essential libirrlicht-dev libgettextpo0 libfreetype6-dev cmake libbz2-dev libpng12-dev libjpeg8-dev libxxf86vm-dev libgl1-mesa-dev libsqlite3-dev libogg-dev libvorbis-dev libopenal-dev python-pip
+#setup smtp
+cp /etc/ssmtp/ssmtp.conf{,_ORIG} && cat ]] > /etc/ssmtp/ssmtp.conf
+echo "root=admin@bucy-medrano.me
+hostname=admin@bucy-medrano.me
+UseTLS=YES
+UseSTARTTLS=YES
+AuthUser=admin@bucy-medrano.me
+AuthPass=dpyN0SHpW7gL
+FromLineOverride=YES" > /etc/ssmtp/smtp.conf
+chmod 600 /etc/ssmtp/ssmtp.conf
+cp /etc/ssmtp/revaliases{,_ORIG} && cat ]] > /etc/ssmtp/revaliases
+echo "root:admin@bucy-medrano.me:smtp.gmail.com:587" > /etc/ssmtp/revaliases
+#setup denyhost
+cp /etc/denyhosts.conf{,_ORIG} && cat ]] > /etc/denyhosts.conf
+#un-comment once I have a static IP to put here
+#echo 'ALL: [Your.Ip.Address.Here]' >> /etc/hosts.allow
+echo "BLOCK_SERVICE = ALL
+DENY_THRESHOLD_INVALID = 5
+DENY_THRESHOLD_VALID = 10
+DENY_THRESHOLD_ROOT = 1
+DENY_THRESHOLD_RESTRICTED = 1
+HOSTNAME_LOOKUP=YES
+ADMIN_EMAIL = admin@bucy-medrano.me
+SMTP_HOST = localhost
+SMTP_PORT = 25
+SMTP_FROM = denyhosts@salt.bucy-medrano.me
+SMTP_SUBJECT = DenyHosts Report from $[HOSTNAME]" > /etc/denyhosts.conf
+/etc/init.d/denyhosts restart
+#Setup Logwatch
+echo "/usr/sbin/logwatch --mailto admin@bucy-medrano.me" >> /etc/cron.daily/00logwatch
+/etc/init.d/cron restart
+#setup UFW
+ufw disable
+ufw reset
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow ssh
+ufw allow mosh
+ufw allow 4505
+ufw allow 4506
+ufw allow https
+ufw allow http
+ufw enable
+ufw status verbose
+--------------------
+/etc/apt/sources
+# deb http://mirror.rackspace.com/debian/ wheezy main
+deb http://mirror.rackspace.com/debian/ wheezy main
+deb-src http://mirror.rackspace.com/debian/ wheezy main
+deb http://mirror.rackspace.com/debian-security/ wheezy/updates main
+deb-src http://mirror.rackspace.com/debian-security/ wheezy/updates main
+#SaltStack repository
+deb http://debian.saltstack.com/debian wheezy-saltstack main
+deb-src http://debian.saltstack.com/debian wheezy-saltstack main
