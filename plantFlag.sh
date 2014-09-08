@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 ###################
 # by: Jonathan Garza
 ###################
@@ -6,13 +6,26 @@
 ###################
 # Sample script for planting our flag and changing files permissions so that
 # others cannot modify it.
+#
+# ATTENTION: This is original work from arthor. Will accept additions/modifications to this version. Original source is with
+# said author.
+#
+#################
+# Modifcations:
+# 09/07/14(JG): included the 'read' variable for taking input from user. Making it interactive for variable cases in which we must
+# accomodate dynamic changes within script variables.
+#
+#
 # 
 ###################
 
-echo "This script checks for the existence of the flag file. If found will plant our flag in it"
-echo "Checking..."
+#file=~/scripts/Flag.txt
 
-file=~/scripts/Flag.txt
+echo "This script checks for the existence of the flag file. If found will plant our flag in it"
+read -p "Hi "$USER". Type the directory path of known flag.txt file here:" file
+
+echo "your dir $file"
+echo "Checking..."
 
 if [ -e "$file" ];
     then 
