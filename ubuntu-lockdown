@@ -1,0 +1,113 @@
+#source: https://gist.github.com/alanstevens/1877257#file-lock_down_ubuntu-sh
+#!/bin/sh
+
+#
+# execute this script as root with:
+# curl https://raw.github.com/gist/1877257/lock_down_ubuntu.sh | bash -s MyAwesomeHostName
+#
+
+if [[ ! "root" = "$(whoami)" ]] ; then
+  echo -e "****\nThis script must be run as root.\n****" && exit 1
+fi
+
+function add_user(){
+  user_name=$1
+  public_key=$2
+
+  echo -e "\nAdding user account: $user_name\n"
+
+  #
+  # create user account and home directory
+  #
+  useradd -m -s /bin/bash $user_name
+
+  #
+  # add user to the rvm group to manage system rubies
+  #
+  usermod -aG rvm $user_name
+
+  #
+  # add user to the web group to manage web sites
+  #
+  usermod -a -G www-data $user_name
+
+  #
+  # write the user's public key to their authorized keys file
+  #
+  curl $public_key > /home/$user_name/.ssh/authorized_keys
+
+  #
+  # set ownership and permissions on authorized_keys
+  #
+  chown -R $user_name:$user_name /home/$user_name/.ssh
+  chmod -R 0751 /home/$user_name/.ssh
+
+  #
+  # add user to sudoers list with no password required (account has no password)
+  #
+  (cat /etc/sudoers;echo "$user_name ALL=(ALL) NOPASSWD: ALL") >> ~/tmp_sudoers
+  chmod 0440 ~/tmp_sudoers
+  visudo -q -c -s -f ~/tmp_sudoers
+  if [ $? == 0 ];then
+    echo -e "\nERROR: There is a problem with the sudoers configuration.\n Please review ~/tmp_sudoers.\n" && exit 1
+  fi
+  mv -f ~/tmp_sudoers /etc/sudoers
+}
+
+#
+# Upgrade installed packages to latest
+#
+echo -e "\nUpdating all installed packages\n"
+aptitude update
+aptitude safe-upgrade -y
+
+#
+# install and configure firewall
+#
+echo -e "\nInstalling and configuring firewall\n"
+aptitude install ufw -y
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow ssh
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+cat /etc/ufw/ufw.conf | sed 's/ENABLED=no/ENABLED=yes/g' > ~/ufw.conf
+chmod 0644 ~/ufw.conf
+mv -f ~/ufw.conf /etc/ufw/ufw.conf
+
+#
+# create alan and andrew's accounts
+#
+add_user 'alan' 'https://dl.dropbox.com/s/qfo16yktbn23q9j/id_rsa.pub?dl=1'
+add_user 'andrew' 'https://dl.dropbox.com/s/2sld4rsbhl0o093/authorized_keys?dl=1'
+
+#
+# set the hostname
+#
+if [ $# > 0 ];then
+  hostName=$1
+  echo -e "\nSetting host name to \"$hostName\"\n"
+  echo "$hostName" > /etc/hostname
+  (echo "127.0.0.1       $hostName   $hostName"; cat /etc/hosts) > ~/hosts
+  chmod 644 ~/hosts
+  mv -f ~/hosts /etc/hosts
+  hostname -F /etc/hostname
+fi
+
+#
+# set timezone to Universal Coordinated Time
+#
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+
+#
+# disable root login and password authentication over ssh
+#
+(cat /etc/ssh/sshd_config;echo "PermitRootLogin no") | sed 's/#PasswordAuthentication yes/PasswordAuthentication no/g' > ~/sshd_config
+chmod 0644 ~/sshd_config
+mv -f ~/sshd_config /etc/ssh/sshd_config
+
+#
+# ** REBOOT ** to apply settings and start firewall
+#
+echo -e "**********\n* REBOOT * the system to finish applying settings, including the firewall.\n**********"
