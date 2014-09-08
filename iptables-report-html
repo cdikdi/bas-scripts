@@ -1,0 +1,30 @@
+#!/bin/bash
+
+##script to generate a html report for the local iptable
+##### Constants
+TITLE="IPTable for $HOSTNAME"
+RIGHT_NOW=$(date +"%x %r %Z")
+TIME_STAMP="Updated on $RIGHT_NOW by $USER"
+
+function IPTABLE
+{
+	echo "<h2>$TITLE</h2>"
+	echo "<pre>"
+	grep iptables -L > ~/Desktop/iptable.html
+	echo "<pre>"
+}
+
+
+#Main
+cat <<- _EOF_
+   <html>
+   <head>
+      <title>$TITLE</title>
+   </head>
+   <body>
+      <h1>$TITLE</h1>
+      <p>./$TIME_STAMP</p>
+      $(IPTABLE)
+   </body>
+   </html>
+_EOF_
