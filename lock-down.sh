@@ -23,7 +23,7 @@ WAN0=
 LAN0=
 LAN1=
 SSH_PORT="22345"
-SSH_PORTS=`find / -name sshd_config`
+SSH_CONFIG=`find / -name sshd_config`
 
 
 #Kernel settings
