@@ -1,8 +1,6 @@
 #!/bin/bash 
 
 #Variables
-
-
 IPTABLES=/sbin/iptables
 NAMESERVER_1="8.8.8.8" 
 NAMESERVER_2="8.8.4.4" 
@@ -43,7 +41,7 @@ chmod +i /etc/sudoers
 #setup SSH
 mkdir /home/ctrl-f73q/.ssh
 touch /home/ctrl-f73q/.ssh/authorized_keys
-echo "inser-key-here" >> /home/ctrl-f7eq/.ssh/authorized_keys
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRSzSDhDYKz8GMd0iV36xkJ+Hjj5o768+BddJx2eD0NczRp2pcrzdjer6YeFWkZ0Uau6X/Y7vUFrjDcZQtD57LhNqlc83v+Y/ObIlV9i2j5sTiiGvGFgrrzv+TJlR1NiPbTI6osiYNLv3Rurb+Sk3F6eZyNwVU/wXubzqLPM+01jJeBNArxwStWAc3nbLXan9kGTvGpf9La/EnAorVzOWa5sRlpvHsG6qBXGoN720fgSZGtzlKUAfErxRa/jebj3/EFXaFaoQr/f2WAolKXCuUho6ZyAcAGQMgbNx+rH7Kz7mCvqNCxaafCstPPccN1oBi2klcJgBvtKHipgfTMFS9 r3d91ll@mintyMac" >> /home/ctrl-f73q/.ssh/authorized_keys
 
 #editing the sshd_config file
 if grep -q "AuthorizedKeysFile" $SSH_CONFIG;
@@ -302,8 +300,3 @@ $IPTABLES -A INPUT  -i $MAINT -j LOG --log-prefix "IPTABLES PROTOCOL-X-IN: " --l
 $IPTABLES -A INPUT  -i $MAINT -j DROP 
 $IPTABLES -A OUTPUT -o $MAINT -j LOG --log-prefix "IPTABLES PROTOCOL-X-OUT: " --log-level 6
 $IPTABLES -A OUTPUT -o $MAINT -j DROP
-
-
-## need better way of determinning how to restart services based on distro
-/etc/init.d/iptables save
-/etc/init.d/sshd restart
